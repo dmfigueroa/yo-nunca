@@ -2,6 +2,8 @@
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
+export const runtime = "edge";
+
 export default function Room({
   params: { name: roomName },
 }: {

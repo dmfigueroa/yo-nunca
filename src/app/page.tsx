@@ -23,6 +23,8 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useRouter } from "next/navigation";
 
+export const runtime = "edge";
+
 const formSchema = z.object({
   name: z
     .string()
