@@ -36,11 +36,13 @@ const formSchema = z.object({
 
 export default function Home() {
   const router = useRouter();
+  const name =
+    typeof window !== "undefined" ? localStorage.getItem("name") : null;
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: localStorage.getItem("name") ?? "",
+      name: name ?? "",
       room: "",
     },
   });
