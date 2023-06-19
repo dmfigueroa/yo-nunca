@@ -22,6 +22,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useRouter } from "next/navigation";
+import { getOrCreateRoom } from "../firebase/firestore/room";
 
 export const runtime = "edge";
 
@@ -53,11 +54,12 @@ export default function Home() {
     return value.replace(/[^a-zA-Z0-9]/g, "-").toLowerCase();
   };
 
-  const onSubmit = (values: z.infer<typeof formSchema>) => {
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
     const { name, room } = values;
     const normalizedRoomName = normalizeRoomName(room);
 
     localStorage.setItem("name", name);
+    await getOrCreateRoom(normalizedRoomName);
     router.push(`/room/${normalizedRoomName}`);
   };
 
