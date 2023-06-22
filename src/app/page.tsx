@@ -22,7 +22,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useRouter } from "next/navigation";
-import { getOrCreateRoom } from "../firebase/firestore/room";
 
 export const runtime = "edge";
 
@@ -59,7 +58,6 @@ export default function Home() {
     const normalizedRoomName = normalizeRoomName(room);
 
     localStorage.setItem("name", name);
-    await getOrCreateRoom(normalizedRoomName);
     router.push(`/room/${normalizedRoomName}`);
   };
 
