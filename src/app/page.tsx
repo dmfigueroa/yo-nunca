@@ -91,7 +91,7 @@ export default function Home() {
                   <FormItem className="grid gap-2">
                     <FormLabel>Sala</FormLabel>
                     <FormControl>
-                      <Input placeholder="Nombre o ID de la sala" {...field} />
+                      <Input placeholder="Nombre de la sala" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
