@@ -58,7 +58,7 @@ export default function Home() {
     const normalizedRoomName = normalizeRoomName(room);
 
     localStorage.setItem("name", name);
-    router.push(`/room/${normalizedRoomName}`);
+    router.push(`/${normalizedRoomName}`);
   };
 
   return (
@@ -78,7 +78,7 @@ export default function Home() {
                   <FormItem className="mb-4 grid gap-2">
                     <FormLabel>Nombre</FormLabel>
                     <FormControl>
-                      <Input placeholder="Nombre del juego" {...field} />
+                      <Input placeholder="Nombre del juegador" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
