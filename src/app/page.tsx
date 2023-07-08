@@ -78,7 +78,7 @@ export default function Home() {
                   <FormItem className="mb-4 grid gap-2">
                     <FormLabel>Nombre</FormLabel>
                     <FormControl>
-                      <Input placeholder="Nombre del juegador" {...field} />
+                      <Input placeholder="Nombre del jugador" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
