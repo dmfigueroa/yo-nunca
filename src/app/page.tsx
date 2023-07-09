@@ -19,9 +19,10 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { useRouter } from "next/navigation";
+import { normalizeRoomName } from "../hooks/use-room";
 
 export const runtime = "edge";
 
@@ -48,10 +49,6 @@ export default function Home() {
       room: "",
     },
   });
-
-  const normalizeRoomName = (value: string) => {
-    return value.replace(/[^a-zA-Z0-9]/g, "-").toLowerCase();
-  };
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     const { name, room } = values;

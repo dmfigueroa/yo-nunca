@@ -1,13 +1,14 @@
 "use client";
+import useRoom from "@/src/hooks/use-room";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 export const runtime = "edge";
 
 export default function Room({
-  params: { name: roomName },
+  params: { room: roomName },
 }: {
-  params: { name: string };
+  params: { room: string };
 }) {
   const name =
     typeof window !== "undefined" ? localStorage.getItem("name") : null;
@@ -20,9 +21,11 @@ export default function Room({
     }
   }, [name, router]);
 
+  const room = useRoom(roomName)
+
   return (
     <div>
-      <h1>{roomName}</h1>
+      <h1>{room.name}</h1>
     </div>
   );
 }
