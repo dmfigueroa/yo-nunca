@@ -6,16 +6,16 @@ type RoomRow = Database["public"]["Tables"]["rooms"]["Row"];
 
 const useRoom = (name: string) => {
   const normalizedName = normalizeRoomName(name);
-  const [error, setError] = useState<Error | null>(null);
-  const [data, setData] = useState<RoomRow | null>(null);
+  const [error, setError] = useState<Error | undefined>(undefined);
+  const [data, setData] = useState<RoomRow | undefined>(undefined);
 
   useEffect(() => {
     getOrCreateRoom(normalizedName).then((result) => {
       if (result.success) {
-        setError(null);
+        setError(undefined);
         setData(result.data);
       } else {
-        setData(null);
+        setData(undefined);
         setError(result.error);
       }
     });
@@ -28,26 +28,24 @@ export const normalizeRoomName = (value: string) => {
   return value.replace(/[^a-zA-Z0-9]/g, "-").toLowerCase();
 };
 
-export const getOrCreateRoom: (
+export const getOrCreateRoom = async (
   name: string
-) => Promise<Result<RoomRow, Error>> = async (name: string) => {
+): Promise<Result<RoomRow, Error>> => {
   const normalizedName = normalizeRoomName(name);
 
-  const { data: room, error } = await supabase
+  const { data, error } = await supabase
     .from("rooms")
     .select()
     .eq("name", normalizedName)
     .limit(1);
 
-  if (error) {
-    return { success: false, error: new Error(error.message) };
-  }
+  if (error) return { success: false, error: new Error(error.message) };
 
-  if (!room[0]) {
-    return { success: false, error: new Error("No room found") };
-  }
+  const room = data[0];
 
-  return { success: true, data: room[0] };
+  if (!room) return { success: false, error: new Error("No room found") };
+
+  return { success: true, data: room };
 };
 
 export default useRoom;

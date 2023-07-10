@@ -23,6 +23,9 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { getOrCreateRoom, normalizeRoomName } from "../hooks/use-room";
+import { getOrCreatePlayer } from "../hooks/use-player";
+import { useState } from "react";
+import { Error } from "@/components/ui/error";
 
 export const runtime = "edge";
 
@@ -42,6 +45,8 @@ export default function Home() {
   const name =
     typeof window !== "undefined" ? localStorage.getItem("name") : null;
 
+  const [error, setError] = useState("");
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -56,9 +61,21 @@ export default function Home() {
 
     localStorage.setItem("name", name);
 
+    const player = await getOrCreatePlayer(name);
+
+    if (!player.success) {
+      setError(player.error.message);
+      return;
+    }
+
+    localStorage.setItem("player", JSON.stringify(player));
+
     const roomValue = await getOrCreateRoom(normalizedRoomName);
 
-    console.log(roomValue);
+    if (!roomValue.success) {
+      setError(roomValue.error.message);
+      return;
+    }
 
     router.push(`/${normalizedRoomName}`);
   };
@@ -99,6 +116,7 @@ export default function Home() {
                   </FormItem>
                 )}
               />
+              {error && <Error className="block pt-4" message={error} />}
             </CardContent>
             <CardFooter>
               <Button className="w-full">Entrar</Button>
