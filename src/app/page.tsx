@@ -22,7 +22,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { normalizeRoomName } from "../hooks/use-room";
+import { getOrCreateRoom, normalizeRoomName } from "../hooks/use-room";
 
 export const runtime = "edge";
 
@@ -55,6 +55,11 @@ export default function Home() {
     const normalizedRoomName = normalizeRoomName(room);
 
     localStorage.setItem("name", name);
+
+    const roomValue = await getOrCreateRoom(normalizedRoomName);
+
+    console.log(roomValue);
+
     router.push(`/${normalizedRoomName}`);
   };
 
