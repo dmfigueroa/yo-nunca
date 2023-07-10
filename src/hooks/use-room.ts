@@ -1,21 +1,36 @@
+import { useEffect, useState } from "react";
 import supabase from "../supabase";
 import { Database } from "../supabase/schema";
 
-const useRoom = async (name: string) => {
+type RoomRow = Database["public"]["Tables"]["rooms"]["Row"];
+
+const useRoom = (name: string) => {
   const normalizedName = normalizeRoomName(name);
+  const [error, setError] = useState<Error | null>(null);
+  const [data, setData] = useState<RoomRow | null>(null);
 
-  const roomResult = await getOrCreateRoom(normalizedName);
+  useEffect(() => {
+    getOrCreateRoom(normalizedName).then((result) => {
+      if (result.success) {
+        setError(null);
+        setData(result.data);
+      } else {
+        setData(null);
+        setError(result.error);
+      }
+    });
+  }, [normalizedName]);
 
-  return { name: normalizedName, ...roomResult };
+  return { name: normalizedName, data, error };
 };
 
 export const normalizeRoomName = (value: string) => {
   return value.replace(/[^a-zA-Z0-9]/g, "-").toLowerCase();
 };
 
-export const getOrCreateRoom = async (
+export const getOrCreateRoom: (
   name: string
-): Promise<Result<Database["public"]["Tables"]["rooms"]["Row"], Error>> => {
+) => Promise<Result<RoomRow, Error>> = async (name: string) => {
   const normalizedName = normalizeRoomName(name);
 
   const { data: room, error } = await supabase

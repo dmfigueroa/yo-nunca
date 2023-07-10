@@ -21,11 +21,15 @@ export default function Room({
     }
   }, [name, router]);
 
-  const room = useRoom(roomName)
+  const { data, error } = useRoom(roomName);
+
+  if (error) {
+    return <h1>Room not found</h1>;
+  }
 
   return (
     <div>
-      <h1>{room.name}</h1>
+      <h1>{data?.name}</h1>
     </div>
   );
 }
