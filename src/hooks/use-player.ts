@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import supabase from "../supabase";
 import { Database } from "../supabase/schema";
+import { normalizeRoomName } from "./use-room";
 
 export type PlayerRow = Database["public"]["Tables"]["players"]["Row"];
 
@@ -12,6 +13,67 @@ const usePlayer = (playerName: string) => {
   if (localPlayer) setPlayer(JSON.parse(localPlayer));
 
   return { player };
+};
+
+export const usePlayers = (roomName: string) => {
+  const normalizedName = normalizeRoomName(roomName);
+  const [players, setPlayers] = useState<PlayerRow[]>([]);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    supabase
+      .from("players")
+      .select()
+      .eq("room_name", normalizedName)
+      .then((playersResponse) => {
+        if (playersResponse.error) {
+          return setError(playersResponse.error.message);
+        }
+        if (!playersResponse.data) {
+          return setError("No data found");
+        }
+        setPlayers(playersResponse.data);
+      });
+  }, [normalizedName]);
+
+  useEffect(() => {
+    const subscription = supabase
+      .channel(normalizedName)
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "players",
+          filter: `room_name=eq.${normalizedName}`,
+        },
+        (payload) => {
+          if (payload.errors && payload.errors.length > 0) {
+            return setError(payload.errors[0]);
+          }
+
+          setPlayers((players) => {
+            const index = players.findIndex((p) => p.id === payload.new.id);
+            const newPlayer = payload.new as (typeof players)[0];
+            if (index > 0) {
+              return [
+                ...players.slice(0, index),
+                newPlayer,
+                ...players.slice(index + 1),
+              ];
+            }
+            return [...players, newPlayer];
+          });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [normalizedName]);
+
+  return { players, error };
 };
 
 export const getOrCreatePlayer = async (

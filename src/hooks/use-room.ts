@@ -28,18 +28,6 @@ const useRoom = (name: string) => {
   const [error, setError] = useState<Error | undefined>(undefined);
   const [data, setData] = useState<RoomRow | undefined>(undefined);
 
-  useEffect(() => {
-    getOrCreateRoom(normalizedName).then((result) => {
-      if (result.success) {
-        setError(undefined);
-        setData(result.data);
-      } else {
-        setData(undefined);
-        setError(result.error);
-      }
-    });
-  }, [normalizedName]);
-
   return { name: normalizedName, data, error };
 };
 
@@ -73,12 +61,14 @@ export const getOrCreateRoom = async (
     }
   }
 
-  const { error: playerError } = await supabase
-    .from("players")
-    .update({
-      room_name: room.name,
-    })
-    .eq("id", playerId);
+  if (playerId) {
+    const { error: playerError } = await supabase
+      .from("players")
+      .update({
+        room_name: room.name,
+      })
+      .eq("id", playerId);
+  }
 
   return { success: true, data: room };
 };
