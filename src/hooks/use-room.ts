@@ -32,7 +32,10 @@ const useRoom = (name: string) => {
 };
 
 export const normalizeRoomName = (value: string) => {
-  return value.replace(/[^a-zA-Z0-9]/g, "-").toLowerCase();
+  return value
+    .trim()
+    .replace(/[^a-zA-Z0-9]/g, "-")
+    .toLowerCase();
 };
 
 export const getOrCreateRoom = async (
