@@ -1,6 +1,6 @@
 "use client";
 import { usePlayers } from "@/src/hooks/use-player";
-import useRoom from "@/src/hooks/use-room";
+import useRoom, { unnormalizeRoomName } from "@/src/hooks/use-room";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
@@ -22,24 +22,28 @@ export default function Room({
     }
   }, [name, router]);
 
-  const { data, error } = useRoom(roomName);
+  const { room, error } = useRoom(roomName);
   const { players, error: playersError } = usePlayers(roomName);
 
   useEffect(() => {
-    console.log(data, players);
-  }, [data, players]);
+    console.log(room, players, error);
+  }, [room, players, error]);
 
   if (error) {
     return <h1>Room not found</h1>;
   }
 
   return (
-    <div>
-      <h1>{data?.name}</h1>
+    <div className="flex w-full flex-col items-center py-7">
+      <h1 className="scroll-m-20 pb-2 text-3xl font-semibold capitalize tracking-tight transition-colors first:mt-0">
+        {unnormalizeRoomName(room?.name)}
+      </h1>
 
       <ul>
         {players.map((p) => (
-          <li key={p.id}>{p.name}</li>
+          <li key={p.id}>
+            {p.name} - {p.puntaje}
+          </li>
         ))}
       </ul>
     </div>

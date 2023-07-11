@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import supabase from "../supabase";
+import { Database } from "../supabase/schema";
 
 const roomSelect = `
   name,
@@ -19,16 +20,35 @@ const getRoomFromDB = async (name: string) => {
     .limit(1);
 };
 
-type RoomRow = NonNullable<
+type RoomRowWithPlayers = NonNullable<
   Awaited<ReturnType<typeof getRoomFromDB>>["data"]
 >[0];
 
+type RoomRow = Database["public"]["Tables"]["rooms"]["Row"];
+
 const useRoom = (name: string) => {
   const normalizedName = normalizeRoomName(name);
-  const [error, setError] = useState<Error | undefined>(undefined);
-  const [data, setData] = useState<RoomRow | undefined>(undefined);
+  const [error, setError] = useState("");
+  const [room, setData] = useState<RoomRow | undefined>(undefined);
 
-  return { name: normalizedName, data, error };
+  useEffect(() => {
+    supabase
+      .from("rooms")
+      .select()
+      .eq("name", normalizedName)
+      .limit(1)
+      .then((response) => {
+        if (response.error) {
+          return setError(response.error.message);
+        }
+        if (!response.data) {
+          return setError("No data found");
+        }
+        setData(response.data[0]);
+      });
+  }, [normalizedName]);
+
+  return { name: normalizedName, room, error };
 };
 
 export const normalizeRoomName = (value: string) => {
@@ -38,10 +58,14 @@ export const normalizeRoomName = (value: string) => {
     .toLowerCase();
 };
 
+export const unnormalizeRoomName = (value = "") => {
+  return value.replace(/-/g, " ");
+};
+
 export const getOrCreateRoom = async (
   name: string,
   playerId?: number
-): Promise<Result<RoomRow, Error>> => {
+): Promise<Result<RoomRowWithPlayers, Error>> => {
   const normalizedName = normalizeRoomName(name);
 
   let { data, error } = await getRoomFromDB(normalizedName);
@@ -79,7 +103,7 @@ export const getOrCreateRoom = async (
 const createRoom = async (
   name: string,
   playerId: number
-): Promise<Result<RoomRow, Error>> => {
+): Promise<Result<RoomRowWithPlayers, Error>> => {
   const { data: createdData, error: createError } = await supabase
     .from("rooms")
     .insert({
