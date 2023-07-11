@@ -23,6 +23,10 @@ export default function Room({
 
   const { data, error } = useRoom(roomName);
 
+  useEffect(() => {
+    console.log(data);
+  }, [data]);
+
   if (error) {
     return <h1>Room not found</h1>;
   }

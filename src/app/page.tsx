@@ -70,7 +70,7 @@ export default function Home() {
 
     localStorage.setItem("player", JSON.stringify(player));
 
-    const roomValue = await getOrCreateRoom(normalizedRoomName);
+    const roomValue = await getOrCreateRoom(normalizedRoomName, player.data.id);
 
     if (!roomValue.success) {
       setError(roomValue.error.message);

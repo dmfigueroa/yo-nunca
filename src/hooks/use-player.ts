@@ -2,7 +2,7 @@ import { useState } from "react";
 import supabase from "../supabase";
 import { Database } from "../supabase/schema";
 
-type PlayerRow = Database["public"]["Tables"]["players"]["Row"];
+export type PlayerRow = Database["public"]["Tables"]["players"]["Row"];
 
 const usePlayer = (playerName: string) => {
   const [player, setPlayer] = useState<PlayerRow | undefined>(undefined);
@@ -17,6 +17,15 @@ const usePlayer = (playerName: string) => {
 export const getOrCreatePlayer = async (
   playerName: string
 ): Promise<Result<PlayerRow, Error>> => {
+  const { data: playerData } = await supabase
+    .from("players")
+    .select()
+    .limit(1)
+    .eq("name", playerName);
+
+  if (playerData && playerData.length > 0)
+    return { success: true, data: playerData[0] };
+
   const { data, error } = await supabase
     .from("players")
     .upsert({ name: playerName, puntaje: 0 })

@@ -1,8 +1,27 @@
 import { useEffect, useState } from "react";
 import supabase from "../supabase";
-import { Database } from "../supabase/schema";
 
-type RoomRow = Database["public"]["Tables"]["rooms"]["Row"];
+const roomSelect = `
+  name,
+  host,
+  players!players_room_name_fkey (
+      id,
+      name,
+      puntaje
+  )
+`;
+
+const getRoomFromDB = async (name: string) => {
+  return await supabase
+    .from("rooms")
+    .select(roomSelect)
+    .eq("name", name)
+    .limit(1);
+};
+
+type RoomRow = NonNullable<
+  Awaited<ReturnType<typeof getRoomFromDB>>["data"]
+>[0];
 
 const useRoom = (name: string) => {
   const normalizedName = normalizeRoomName(name);
@@ -29,23 +48,64 @@ export const normalizeRoomName = (value: string) => {
 };
 
 export const getOrCreateRoom = async (
-  name: string
+  name: string,
+  playerId?: number
 ): Promise<Result<RoomRow, Error>> => {
   const normalizedName = normalizeRoomName(name);
 
-  const { data, error } = await supabase
-    .from("rooms")
-    .select()
-    .eq("name", normalizedName)
-    .limit(1);
+  let { data, error } = await getRoomFromDB(normalizedName);
 
   if (error) return { success: false, error: new Error(error.message) };
 
-  const room = data[0];
+  let room = data?.[0];
 
-  if (!room) return { success: false, error: new Error("No room found") };
+  if (!room) {
+    if (!playerId) {
+      return { success: false, error: new Error("No player given") };
+    }
+
+    const result = await createRoom(normalizedName, playerId);
+
+    if (result.success) {
+      room = result.data;
+    } else {
+      return result;
+    }
+  }
+
+  const { error: playerError } = await supabase
+    .from("players")
+    .update({
+      room_name: room.name,
+    })
+    .eq("id", playerId);
 
   return { success: true, data: room };
+};
+
+const createRoom = async (
+  name: string,
+  playerId: number
+): Promise<Result<RoomRow, Error>> => {
+  const { data: createdData, error: createError } = await supabase
+    .from("rooms")
+    .insert({
+      name: name,
+      host: playerId,
+    })
+    .select(roomSelect);
+
+  if (createError)
+    return { success: false, error: new Error(createError.message) };
+
+  if (!createdData)
+    return { success: false, error: new Error("Error creating room") };
+
+  const room = createdData[0];
+
+  if (!room) return { success: false, error: new Error("Error creating room") };
+
+  return getOrCreateRoom(name);
 };
 
 export default useRoom;
