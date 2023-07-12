@@ -1,4 +1,5 @@
 "use client";
+import { Card } from "@/components/ui/card";
 import { usePlayers } from "@/src/hooks/use-player";
 import useRoom, { unnormalizeRoomName } from "@/src/hooks/use-room";
 import { useRouter } from "next/navigation";
@@ -34,18 +35,25 @@ export default function Room({
   }
 
   return (
-    <div className="flex w-full flex-col items-center py-7">
+    <div className="flex w-full flex-col items-center py-10">
       <h1 className="scroll-m-20 pb-2 text-3xl font-semibold capitalize tracking-tight transition-colors first:mt-0">
         {unnormalizeRoomName(room?.name)}
       </h1>
 
-      <ul>
+      <div className="flex w-full flex-wrap justify-start px-6 pt-16">
         {players.map((p) => (
-          <li key={p.id}>
-            {p.name} - {p.puntaje}
-          </li>
+          <div key={p.id} className="w-1/2 px-4 md:w-1/4 lg:w-1/5">
+            <Card className="mb-9 flex aspect-square w-full flex-col items-center justify-center px-7 py-8">
+              <span className="mb-4 scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl">
+                {p.puntaje}
+              </span>
+              <span className="scroll-m-20 text-xl font-semibold tracking-tight">
+                {p.name}
+              </span>
+            </Card>
+          </div>
         ))}
-      </ul>
+      </div>
     </div>
   );
 }
