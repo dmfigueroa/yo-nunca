@@ -5,14 +5,16 @@ import { normalizeRoomName } from "./use-room";
 
 export type PlayerRow = Database["public"]["Tables"]["players"]["Row"];
 
-const usePlayer = (playerName: string) => {
+export const usePlayer = () => {
   const [player, setPlayer] = useState<PlayerRow | undefined>(undefined);
 
-  const localPlayer = localStorage.getItem("player");
+  useEffect(() => {
+    const localPlayer = localStorage.getItem("player");
 
-  if (localPlayer) setPlayer(JSON.parse(localPlayer));
+    if (localPlayer) setPlayer(JSON.parse(localPlayer));
+  }, []);
 
-  return { player };
+  return player;
 };
 
 export const usePlayers = (roomName: string) => {

@@ -5,6 +5,7 @@ import { Database } from "../supabase/schema";
 const roomSelect = `
   name,
   host,
+  round,
   players!players_room_name_fkey (
       id,
       name,
@@ -26,7 +27,7 @@ type RoomRowWithPlayers = NonNullable<
 
 type RoomRow = Database["public"]["Tables"]["rooms"]["Row"];
 
-const useRoom = (name: string) => {
+export const useRoom = (name: string) => {
   const normalizedName = normalizeRoomName(name);
   const [error, setError] = useState("");
   const [room, setData] = useState<RoomRow | undefined>(undefined);
@@ -48,6 +49,29 @@ const useRoom = (name: string) => {
       });
   }, [normalizedName]);
 
+  useEffect(() => {
+    const subscription = supabase.channel(normalizedName).on(
+      "postgres_changes",
+      {
+        event: "UPDATE",
+        schema: "public",
+        table: "room",
+        filter: `name=eq.${normalizedName}`,
+      },
+      (payload) => {
+        console.log(payload);
+        if (payload.errors && payload.errors.length > 0)
+          return setError(payload.errors[0]);
+
+        setData((room) => payload.new[0]);
+      }
+    );
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [normalizedName]);
+
   return { name: normalizedName, room, error };
 };
 
@@ -58,7 +82,7 @@ export const normalizeRoomName = (value: string) => {
     .toLowerCase();
 };
 
-export const unnormalizeRoomName = (value = "") => {
+export const denormalizeRoomName = (value = "") => {
   return value.replace(/-/g, " ");
 };
 

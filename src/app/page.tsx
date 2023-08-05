@@ -68,7 +68,7 @@ export default function Home() {
       return;
     }
 
-    localStorage.setItem("player", JSON.stringify(player));
+    localStorage.setItem("player", JSON.stringify(player.data));
 
     const roomValue = await getOrCreateRoom(normalizedRoomName, player.data.id);
 
