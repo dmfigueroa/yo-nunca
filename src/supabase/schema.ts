@@ -113,7 +113,18 @@ export interface Database {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      increment: {
+        Args: {
+          player_id: number
+        }
+        Returns: undefined
+      }
+      increment_points: {
+        Args: {
+          player_id: number
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never

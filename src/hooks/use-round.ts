@@ -77,12 +77,19 @@ export const useRound = (roundNumber?: number, room?: string) => {
   const sendResponse = async (result: boolean, playerId: number) => {
     if (!roundNumber || !room) return;
 
-    await supabase.from("votes").insert({
-      player: playerId,
-      round: roundNumber,
-      room_name: room,
-      vote: result,
-    });
+    const voteResponse = await supabase
+      .from("votes")
+      .insert({
+        player: playerId,
+        round: roundNumber,
+        room_name: room,
+        vote: result,
+      })
+      .select();
+
+    if (!voteResponse.error && result) {
+      await supabase.rpc("increment_points", { player_id: playerId });
+    }
   };
 
   return { sendResponse, round };
