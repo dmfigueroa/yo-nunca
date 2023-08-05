@@ -61,7 +61,6 @@ export const useRoom = (name: string) => {
           filter: `name=eq.${normalizedName}`,
         },
         (payload) => {
-          console.log(payload);
           if (payload.errors && payload.errors.length > 0)
             return setError(payload.errors[0]);
 
@@ -82,7 +81,16 @@ export const useRoom = (name: string) => {
     };
   }, [normalizedName]);
 
-  return { name: normalizedName, room, error };
+  const nextRound = async () => {
+    if (!room) return;
+
+    await supabase
+      .from("rooms")
+      .update({ round: (room.round || 1) + 1 })
+      .eq("name", room.name);
+  };
+
+  return { name: normalizedName, room, error, nextRound };
 };
 
 export const normalizeRoomName = (value: string) => {

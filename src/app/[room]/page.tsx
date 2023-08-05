@@ -42,7 +42,7 @@ export default function Room({
     }
   }, [name, router]);
 
-  const { room, error } = useRoom(roomName);
+  const { room, error, nextRound } = useRoom(roomName);
   const { players, error: playersError } = usePlayers(roomName);
   const player = usePlayer();
   const isHost = useMemo(
@@ -100,7 +100,7 @@ export default function Room({
             No lo hice
           </Button>
           {isHost && (
-            <Button className="uppercase" variant="outline">
+            <Button className="uppercase" variant="outline" onClick={nextRound}>
               Siguiente ronda
             </Button>
           )}
