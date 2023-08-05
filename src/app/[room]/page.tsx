@@ -2,10 +2,13 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { usePlayer, usePlayers } from "@/hooks/use-player";
-import { useRoom, denormalizeRoomName } from "@/hooks/use-room";
+import { denormalizeRoomName, useRoom } from "@/hooks/use-room";
+import { useRound } from "@/hooks/use-round";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { forwardRef, useEffect, useMemo, type HTMLProps } from "react";
+import { PlayerRow } from "../../hooks/use-player";
+import { cva } from "class-variance-authority";
 
 export const runtime = "edge";
 
@@ -26,6 +29,45 @@ const Title = forwardRef<
   </h1>
 ));
 
+const PlayerCard = ({
+  player,
+  voted,
+}: {
+  player: PlayerRow;
+  voted?: boolean;
+}) => {
+  const variant = useMemo(() => {
+    if (voted === true) return "did";
+    if (voted === false) return "didnt";
+    return undefined;
+  }, [voted]);
+
+  const variants = cva(
+    "mb-9 flex aspect-square w-full flex-col items-center justify-center px-7 py-8",
+    {
+      variants: {
+        variant: {
+          did: "border-success text-success",
+          didnt: "border-red-500 text-red-500",
+        },
+      },
+    }
+  );
+
+  return (
+    <div className="w-1/2 px-4 md:w-1/3 lg:w-1/4 xl:w-1/5">
+      <Card className={cn(variants({ variant }))}>
+        <span className="mb-4 scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl">
+          {player.puntaje}
+        </span>
+        <span className="scroll-m-20 text-xl font-semibold tracking-tight">
+          {player.name}
+        </span>
+      </Card>
+    </div>
+  );
+};
+
 export default function Room({
   params: { room: roomName },
 }: {
@@ -45,6 +87,10 @@ export default function Room({
   const { room, error, nextRound } = useRoom(roomName);
   const { players, error: playersError } = usePlayers(roomName);
   const player = usePlayer();
+  const { round, sendResponse } = useRound(
+    room?.round ?? undefined,
+    room?.name
+  );
   const isHost = useMemo(
     () => room && player && room.host === player.id,
     [room, player]
@@ -60,7 +106,7 @@ export default function Room({
     [players]
   );
 
-  if (error || !room) {
+  if (error || !room || !player) {
     return <h1>Room not found</h1>;
   }
 
@@ -71,16 +117,11 @@ export default function Room({
         <p>Round {room.round}</p>
         <div className="flex w-full flex-wrap justify-start px-6 pt-6 md:pt-10">
           {sortedPlayers.map((p) => (
-            <div key={p.id} className="w-1/2 px-4 md:w-1/3 lg:w-1/4 xl:w-1/5">
-              <Card className="mb-9 flex aspect-square w-full flex-col items-center justify-center px-7 py-8">
-                <span className="mb-4 scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl">
-                  {p.puntaje}
-                </span>
-                <span className="scroll-m-20 text-xl font-semibold tracking-tight">
-                  {p.name}
-                </span>
-              </Card>
-            </div>
+            <PlayerCard
+              key={p.id}
+              player={p}
+              voted={round?.find((v) => v.player === p.id)?.vote ?? undefined}
+            />
           ))}
         </div>
       </div>
@@ -90,12 +131,14 @@ export default function Room({
           <Button
             variant="outline"
             className="border-success uppercase text-success hover:bg-success hover:text-white"
+            onClick={() => sendResponse(true, player.id)}
           >
             Lo hice
           </Button>
           <Button
             variant="outline"
             className="border-red-500 uppercase text-red-500 hover:bg-red-500 hover:text-white"
+            onClick={() => sendResponse(false, player.id)}
           >
             No lo hice
           </Button>

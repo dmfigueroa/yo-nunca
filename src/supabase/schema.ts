@@ -75,18 +75,21 @@ export interface Database {
         Row: {
           created_at: string | null
           player: number
+          room_name: string
           round: number
           vote: boolean | null
         }
         Insert: {
           created_at?: string | null
           player: number
+          room_name: string
           round: number
           vote?: boolean | null
         }
         Update: {
           created_at?: string | null
           player?: number
+          room_name?: string
           round?: number
           vote?: boolean | null
         }
@@ -96,6 +99,12 @@ export interface Database {
             columns: ["player"]
             referencedRelation: "players"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "votes_room_name_fkey"
+            columns: ["room_name"]
+            referencedRelation: "rooms"
+            referencedColumns: ["name"]
           }
         ]
       }
