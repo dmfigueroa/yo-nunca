@@ -3,7 +3,7 @@ export type Json =
   | number
   | boolean
   | null
-  | { [key: string]: Json }
+  | { [key: string]: Json | undefined }
   | Json[]
 
 export interface Database {
@@ -48,21 +48,52 @@ export interface Database {
           created_at: string | null
           host: number | null
           name: string
+          round: number | null
         }
         Insert: {
           created_at?: string | null
           host?: number | null
           name: string
+          round?: number | null
         }
         Update: {
           created_at?: string | null
           host?: number | null
           name?: string
+          round?: number | null
         }
         Relationships: [
           {
             foreignKeyName: "rooms_host_fkey"
             columns: ["host"]
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      votes: {
+        Row: {
+          created_at: string | null
+          player: number
+          round: number
+          vote: boolean | null
+        }
+        Insert: {
+          created_at?: string | null
+          player: number
+          round: number
+          vote?: boolean | null
+        }
+        Update: {
+          created_at?: string | null
+          player?: number
+          round?: number
+          vote?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "votes_player_fkey"
+            columns: ["player"]
             referencedRelation: "players"
             referencedColumns: ["id"]
           }
@@ -83,4 +114,3 @@ export interface Database {
     }
   }
 }
-

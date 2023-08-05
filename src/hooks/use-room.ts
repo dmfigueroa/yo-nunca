@@ -50,22 +50,32 @@ export const useRoom = (name: string) => {
   }, [normalizedName]);
 
   useEffect(() => {
-    const subscription = supabase.channel(normalizedName).on(
-      "postgres_changes",
-      {
-        event: "UPDATE",
-        schema: "public",
-        table: "room",
-        filter: `name=eq.${normalizedName}`,
-      },
-      (payload) => {
-        console.log(payload);
-        if (payload.errors && payload.errors.length > 0)
-          return setError(payload.errors[0]);
+    const subscription = supabase
+      .channel(normalizedName)
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "rooms",
+          filter: `name=eq.${normalizedName}`,
+        },
+        (payload) => {
+          console.log(payload);
+          if (payload.errors && payload.errors.length > 0)
+            return setError(payload.errors[0]);
 
-        setData((room) => payload.new[0]);
-      }
-    );
+          setData((room) => {
+            if (!room) return undefined;
+
+            return {
+              ...room,
+              round: Number(payload.new.round) || 1,
+            };
+          });
+        }
+      )
+      .subscribe();
 
     return () => {
       subscription.unsubscribe();

@@ -40,7 +40,7 @@ export const usePlayers = (roomName: string) => {
 
   useEffect(() => {
     const subscription = supabase
-      .channel(normalizedName)
+      .channel(`${normalizedName}.players`)
       .on(
         "postgres_changes",
         {
